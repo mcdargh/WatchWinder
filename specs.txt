@@ -1,0 +1,11 @@
+target is 8rpm
+
+left for rolex
+	650 tpd both
+
+right for omega 
+	800 tpd clockwise
+
+
+
+
