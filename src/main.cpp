@@ -29,22 +29,22 @@ struct StateMachine_t{
 };
 
 // pin and timer defines
-#define Standby 16
+#define Standby 14
 #define SPEED 500
 #define PWMFREQ 15000
 
 #define RolexTPD 650.0 // 650 TPD
 #define RolexDir All
-#define RolexPWM 5
-#define RolexPINA 4
-#define RolexPINB 2
+#define RolexPWM 15
+#define RolexPINA 12
+#define RolexPINB 13
 #define RolexNAME "Rolex"
 
 #define OmegaTPD 800.0
 #define OmegaDir Clockwise
-#define OmegaPWM 14
-#define OmegaPINA 12
-#define OmegaPINB 13
+#define OmegaPWM 5
+#define OmegaPINA 2
+#define OmegaPINB 4
 #define OmegaNAME "Omega"
 
 #define RPM 8.0
@@ -240,6 +240,6 @@ void stopWinding(StateMachine_t& sm) {
   digitalWrite(sm.pina, HIGH);
   digitalWrite(sm.pinb, HIGH);
 
-  snprintf(log, sizeof(log), "Started motor %s\n", sm.name);
+  snprintf(log, sizeof(log), "Stopped motor %s\n", sm.name);
   sendToDweet(log);
 }
