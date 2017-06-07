@@ -4,3 +4,5 @@
 .gcc-flags.json
 src/settings.h
 .DS_Store
+*job
+*.b$*
