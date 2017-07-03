@@ -5,4 +5,5 @@
 src/settings.h
 .DS_Store
 *job
-*.b$*
+*.b$?
+*.b#?
