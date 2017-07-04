@@ -858,6 +858,7 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 </variantdefs>
 <classes>
 <class number="0" name="default" width="0.508" drill="0">
+<clearance class="0" value="0.127"/>
 </class>
 </classes>
 <parts>
@@ -1158,6 +1159,16 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <errors>
 <approved hash="104,1,40.64,7.62,MULTIPLEXERP,VEE,GND,,,"/>
 <approved hash="104,1,45.72,22.86,MULTIPLEXERP,VCC,N$14,,,"/>
+<approved hash="110,1,17.78,63.5,N$12,N$26,,,,"/>
+<approved hash="110,1,17.78,63.5,N$12,N$26,,,,"/>
+<approved hash="110,1,-43.18,22.86,N$18,N$16,,,,"/>
+<approved hash="110,1,-43.18,22.86,N$18,N$16,,,,"/>
+<approved hash="110,1,12.7,68.58,N$26,N$24,,,,"/>
+<approved hash="110,1,12.7,68.58,N$26,N$24,,,,"/>
+<approved hash="110,1,7.62,2.54,N$24,GND,,,,"/>
+<approved hash="110,1,7.62,2.54,N$24,GND,,,,"/>
+<approved hash="110,1,2.54,2.54,N$24,N$26,,,,"/>
+<approved hash="110,1,2.54,2.54,N$24,N$26,,,,"/>
 </errors>
 </schematic>
 </drawing>
