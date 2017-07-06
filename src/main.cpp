@@ -250,6 +250,12 @@ void checkSM(StateMachine_t& sm) {
 
 
 void sendToDweet(const char* log) {
+  char msg[512];
+
+  if(!wifiConnected) {
+    return;
+  }
+  
   // Use WiFiClient class to create TCP connections
   WiFiClient client;
   const int httpPort = 80;
@@ -260,10 +266,10 @@ void sendToDweet(const char* log) {
     return;
   }
 
+  snprintf(msg, 512, "POST %s%s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n", dweet, log, host);
   // This will send the request to the server
-  client.print(String("POST ") + dweet + log + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" +
-               "Connection: close\r\n\r\n");
+  client.print(String(msg));
+
   delay(100);
   yield;
 
