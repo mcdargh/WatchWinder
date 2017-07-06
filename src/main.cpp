@@ -7,7 +7,7 @@ FILE: settings.h
 // WiFi settings
 const char* ssid = "MYSSID";
 const char* password = "MyPassword";
-const char* dweet = "/dweet/for/myservice?uv="
+const char* dweet = "/dweet/for/myservice?what=";
 */
 #include "settings.h"
 
@@ -33,6 +33,7 @@ struct StateMachine_t{
 #define SPEED 500
 #define PWMFREQ 15000
 
+// PWM A
 #define RolexTPD 650.0 // 650 TPD
 #define RolexDir All
 #define RolexPWM 15
@@ -40,6 +41,7 @@ struct StateMachine_t{
 #define RolexPINB 13
 #define RolexNAME "Rolex"
 
+// PWM B
 #define OmegaTPD 800.0
 #define OmegaDir Clockwise
 #define OmegaPWM 5
@@ -187,7 +189,8 @@ void sendToDweet(const char* log) {
   const int httpPort = 80;
   if (!client.connect(host, httpPort)) {
     Serial.println("connection failed");
-    delay(1000);
+    delay(100);
+    yield;
     return;
   }
 
@@ -195,11 +198,13 @@ void sendToDweet(const char* log) {
   client.print(String("POST ") + dweet + log + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" +
                "Connection: close\r\n\r\n");
-  delay(10);
+  delay(100);
+  yield;
 
   // Read all the lines of the reply from server and print them to Serial
   while(client.available()){
     String line = client.readStringUntil('\r');
+    Serial.println(line);
   }
 }
 
