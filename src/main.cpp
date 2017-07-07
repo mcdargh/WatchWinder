@@ -10,7 +10,7 @@ FILE: settings.h
 // WiFi settings
 const char* ssid = "MYSSID";
 const char* password = "MyPassword";
-const char* dweet = "/dweet/for/myservice?what=";
+const char* dweet = "/dweet/for/myservice?log=";
 const char* otapwd = "supersecret";
 NOTE:  Be sure to set this password also in the auth flag in platform.io
 */
@@ -95,9 +95,10 @@ bool connectToWifi() {
   // Connect to WiFi
    WiFi.mode(WIFI_STA);
    WiFi.begin(ssid, password);
-   while ((WiFi.status() != WL_CONNECTED) && (numTries-- > 0)) {
-     delay(500);
+   while ((WiFi.status() != WL_CONNECTED) && (numTries > 0)) {
+     numTries--;
      Serial.print(".");
+     delay(1000);
    }
    if(WiFi.status() != WL_CONNECTED) {
      Serial.println("WIFI not connected");
@@ -197,6 +198,7 @@ void setSM(StateMachine_t& sm, float tpd, WinderDirection_t direction,
 
 void loop()
 {
+  unsigned long start = millis();
   char log[256];
 
   if(wifiConnected) {
@@ -214,7 +216,14 @@ void loop()
     digitalWrite(Standby, LOW);
   }
 
-  delay(1000);
+  // try to keep the loop at one second in between passes
+  unsigned long end = millis();
+  unsigned long diff = 1000 - (end - start);
+  // sanity check
+  if(diff > 1000) {
+    diff = 1000;
+  }
+  delay(diff);
 }
 
 void checkSM(StateMachine_t& sm) {
@@ -266,7 +275,11 @@ void sendToDweet(const char* log) {
     return;
   }
 
-  snprintf(msg, 512, "POST %s%s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n", dweet, log, host);
+  // make log entry websafe
+  String slog = String(log);
+  slog.replace(String(" "), String("%20"));
+  
+  snprintf(msg, 512, "GET %s%s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n", dweet, slog.c_str(), host);
   // This will send the request to the server
   client.print(String(msg));
 
@@ -293,7 +306,7 @@ void startWinding(StateMachine_t& sm) {
   }
   analogWrite(sm.pwm, SPEED);
 
-  snprintf(log, sizeof(log), "Started motor %s\n", sm.name);
+  snprintf(log, sizeof(log), "Started motor %s", sm.name);
   sendToDweet(log);
 }
 
@@ -317,6 +330,6 @@ void stopWinding(StateMachine_t& sm) {
   digitalWrite(sm.pina, HIGH);
   digitalWrite(sm.pinb, HIGH);
 
-  snprintf(log, sizeof(log), "Stopped motor %s\n", sm.name);
+  snprintf(log, sizeof(log), "Stopped motor %s", sm.name);
   sendToDweet(log);
 }
