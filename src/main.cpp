@@ -67,6 +67,7 @@ void startWinding(StateMachine_t& sm);
 void stopWinding(StateMachine_t& sm);
 void switchDirection(StateMachine_t& sm);
 void setupOTA();
+void log(const char* msg);
 
 StateMachine_t RolexSM;
 StateMachine_t OmegaSM;
@@ -106,11 +107,8 @@ bool connectToWifi() {
    }
 
    wifiConnected = true;
-   Serial.println("");
-   Serial.println("WiFi connected");
-
    // Print the IP address
-   Serial.println(WiFi.localIP());
+   log(WiFi.localIP());
    return true;
 }
 
@@ -175,7 +173,7 @@ void setSM(StateMachine_t& sm, float tpd, WinderDirection_t direction,
   // how many seconds running per hour
   sm.onlimit = ceil(onlimit);
   // how many seconds idle per hour
-  sm.idlelimit = 24*60*60 - sm.onlimit;
+  sm.idlelimit = 60*60 - sm.onlimit;
 
   // set start direction
   switch(direction) {
@@ -199,7 +197,6 @@ void setSM(StateMachine_t& sm, float tpd, WinderDirection_t direction,
 void loop()
 {
   unsigned long start = millis();
-  char log[256];
 
   if(wifiConnected) {
     ArduinoOTA.handle();
@@ -211,8 +208,8 @@ void loop()
   checkSM(OmegaSM);
   checkSM(RolexSM);
   // if nobody running, go to standby mode
-  if((OmegaSM.mode == Idle) && (RolexSM.mode == Idle)) {
-    Serial.println("Motor control to idle");
+  if((OmegaSM.mode == Idle) && (RolexSM.mode == Idle) && (digitalRead(Standby) != LOW)) {
+    log("Motor control to idle");
     digitalWrite(Standby, LOW);
   }
 
@@ -222,6 +219,8 @@ void loop()
   // sanity check
   if(diff > 1000) {
     diff = 1000;
+  } else if(diff < 0) {
+    diff = 0;
   }
   delay(diff);
 }
@@ -233,7 +232,6 @@ void checkSM(StateMachine_t& sm) {
         sm.mode = Winding;
         sm.count = sm.onlimit;
         startWinding(sm);
-        Serial.printf("Motor %s switched from Not Running to Winding\n", sm.name);
         break;
       case Idle :
         // add second to idle time
@@ -242,7 +240,6 @@ void checkSM(StateMachine_t& sm) {
           sm.mode = Winding;
           sm.count = sm.onlimit;
           startWinding(sm);
-          Serial.printf("Motor %s switched from Idle to Winding\n", sm.name);
         }
         break;
       case Winding :
@@ -252,7 +249,6 @@ void checkSM(StateMachine_t& sm) {
           sm.count = sm.idlelimit;
           stopWinding(sm);
           switchDirection(sm);
-          Serial.printf("Motor %s switched from Winding to Idle\n", sm.name);
         }
     }
 }
@@ -294,9 +290,9 @@ void sendToDweet(const char* log) {
 }
 
 void startWinding(StateMachine_t& sm) {
-  char log[256];
+  char slog[256];
 
-  digitalWrite(Standby, HIGH);
+  analogWrite(sm.pwm, SPEED);
   if(sm.current_direction == ClockWise) {
     digitalWrite(sm.pina, HIGH);
     digitalWrite(sm.pinb, LOW);
@@ -304,10 +300,10 @@ void startWinding(StateMachine_t& sm) {
     digitalWrite(sm.pina, LOW);
     digitalWrite(sm.pinb, HIGH);
   }
-  analogWrite(sm.pwm, SPEED);
+  digitalWrite(Standby, HIGH);
 
-  snprintf(log, sizeof(log), "Started motor %s", sm.name);
-  sendToDweet(log);
+  snprintf(slog, sizeof(slog), "Started motor %s", sm.name);
+  log(slog);
 }
 
 void switchDirection(StateMachine_t& sm) {
@@ -324,12 +320,19 @@ void switchDirection(StateMachine_t& sm) {
 }
 
 void stopWinding(StateMachine_t& sm) {
-  char log[256];
+  char slog[256];
 
   analogWrite(sm.pwm, 0);
   digitalWrite(sm.pina, HIGH);
   digitalWrite(sm.pinb, HIGH);
 
-  snprintf(log, sizeof(log), "Stopped motor %s", sm.name);
-  sendToDweet(log);
+  snprintf(slog, sizeof(slog), "Stopped motor %s", sm.name);
+  log(slog);
+}
+
+void log(const char* msg) {
+  Serial.print(msg);
+  if(wifiConnected) {
+    sendToDweet(msg);
+  }
 }
